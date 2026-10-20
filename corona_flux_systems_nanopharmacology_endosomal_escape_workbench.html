@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CORONA-FLUX // Systems Nanopharmacology & Endosomal Escape Workbench</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            slate: {
+              850: '#131c2e',
+              900: '#0d1424',
+              950: '#070b14'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #070b14;
+      color: #e2e8f0;
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #1e293b;
+      height: 6px;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      border: 2px solid #070b14;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+      transition: transform 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #7dd3fc;
+    }
+    .glass-panel {
+      background: rgba(19, 28, 46, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+    .metric-glow-cyan {
+      box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.06);
+    }
+    .metric-glow-emerald {
+      box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.07);
+    }
+    .metric-glow-amber {
+      box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.07);
+    }
+    .metric-glow-rose {
+      box-shadow: inset 0 0 20px rgba(244, 63, 94, 0.07);
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d1424;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- Top Header & Navigation -->
+  <header class="border-b border-slate-800/80 bg-slate-950/90 sticky top-0 z-30 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-500/20 via-indigo-500/20 to-emerald-500/20 border border-sky-400/40 flex items-center justify-center shadow-inner">
+          <svg class="w-5 h-5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="4.5" />
+            <circle cx="12" cy="12" r="9" stroke-dasharray="3 2.5" />
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M19.07 4.93l-1.41 1.41M6.34 17.66l-1.41 1.41" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-xs uppercase tracking-widest px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/25">v1.4 Systems Nanopharmacology</span>
+            <span class="hidden sm:inline-block text-xs text-slate-400 font-mono">RK4 ODE + De Gennes Brush + HII Escape</span>
+          </div>
+          <h1 class="text-base sm:text-lg font-semibold tracking-tight text-white">CORONA-FLUX <span class="text-slate-400 font-normal">// Synthetic Identity to Biological Fate</span></h1>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-lg border border-slate-800 overflow-x-auto max-w-full" aria-label="Main Navigation">
+        <button id="tab-btn-workbench" data-tab="workbench" class="nav-tab-btn px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all bg-sky-500/20 text-sky-300 border border-sky-500/30 whitespace-nowrap">
+          1. Biophysical Workbench
+        </button>
+        <button id="tab-btn-phasespace" data-tab="phasespace" class="nav-tab-btn px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 border border-transparent whitespace-nowrap">
+          2. 2D Phase-Space Map
+        </button>
+        <button id="tab-btn-compare" data-tab="compare" class="nav-tab-btn px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 border border-transparent whitespace-nowrap flex items-center gap-1.5">
+          <span>3. Formulation Bench</span>
+          <span id="pinned-count-badge" class="px-1.5 py-0.2 rounded-full text-[11px] font-mono bg-slate-800 text-sky-300">2</span>
+        </button>
+        <button id="tab-btn-guide" data-tab="guide" class="nav-tab-btn px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 border border-transparent whitespace-nowrap">
+          4. Architecture &amp; GitHub Guide
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Toast Notification Banner -->
+  <div id="toast-banner" class="fixed bottom-5 right-5 z-50 hidden transform transition-all duration-200">
+    <div class="bg-slate-900 border border-sky-500/40 text-slate-100 px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm">
+      <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+      <span id="toast-message">Formulation pinned to comparison bench.</span>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
+
+    <!-- ==================== TAB 1: BIOPHYSICAL WORKBENCH ==================== -->
+    <section id="view-workbench" class="space-y-5">
+
+      <!-- Top Preset & Milieu Bar -->
+      <div class="glass-panel rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-mono uppercase tracking-wider text-slate-400 mr-1">Reference Formulations:</span>
+          <button data-preset="mc3_lnp" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25 transition">
+            Onpattro-like LNP (MC3, pKa 6.44)
+          </button>
+          <button data-preset="stealth_liposome" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700 hover:bg-slate-800 transition">
+            Doxil-like Stealth Liposome (5% PEG-C18)
+          </button>
+          <button data-preset="lung_sort" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700 hover:bg-slate-800 transition">
+            Cationic SORT Lung LNP (pKa 7.25)
+          </button>
+          <button data-preset="plga_peg" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700 hover:bg-slate-800 transition">
+            PLGA-PEG Core-Shell NP (145 nm)
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <label for="milieu-select" class="text-xs font-mono text-slate-400">Bio-Milieu:</label>
+          <select id="milieu-select" class="bg-slate-900 border border-slate-700 rounded-md px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+            <option value="healthy_plasma">Human Venous Plasma (pH 7.4, Normal ApoE)</option>
+            <option value="apoe_deficient">ApoE-Depleted Plasma (LDLR Pathway Block)</option>
+            <option value="tumor_stroma">Acidic Tumor Interstitium (pH 6.75, High C3b)</option>
+          </select>
+          <button id="pin-formulation-btn" class="px-3 py-1 rounded-md text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/25 transition flex items-center gap-1">
+            <span>+ Pin to Bench</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Strip: Synthetic Identity vs Biological Identity -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <!-- Card 1: De Gennes PEG Conformation -->
+        <div class="glass-panel metric-glow-cyan rounded-xl p-4">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+            <span class="font-mono uppercase">De Gennes PEG Brush</span>
+            <span id="kpi-peg-regime-badge" class="px-2 py-0.5 rounded text-[11px] font-mono bg-sky-500/15 text-sky-300 border border-sky-500/30">Transition</span>
+          </div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="kpi-rf-d-val" class="text-2xl font-bold font-mono text-white">1.38</span>
+            <span class="text-xs text-slate-400 font-mono">R<sub>F</sub> / D ratio</span>
+          </div>
+          <p id="kpi-peg-subtext" class="text-xs text-slate-400 mt-1.5">Graft spacing D = 2.49 nm (Flory R<sub>F</sub> = 3.43 nm)</p>
+        </div>
+
+        <!-- Card 2: Hard Corona Identity Ratio -->
+        <div class="glass-panel metric-glow-amber rounded-xl p-4">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+            <span class="font-mono uppercase">Hard Corona @ 60 min</span>
+            <span id="kpi-corona-badge" class="px-2 py-0.5 rounded text-[11px] font-mono bg-amber-500/15 text-amber-300 border border-amber-500/30">ApoE-Enriched</span>
+          </div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="kpi-apoe-opsonin-val" class="text-2xl font-bold font-mono text-white">2.45x</span>
+            <span class="text-xs text-slate-400 font-mono">ApoE / Opsonin</span>
+          </div>
+          <p id="kpi-corona-subtext" class="text-xs text-slate-400 mt-1.5">ApoE: 38.2% | IgG+C3b: 15.6% | Clu: 26.4%</p>
+        </div>
+
+        <!-- Card 3: Endosomal Escape Efficiency -->
+        <div class="glass-panel metric-glow-emerald rounded-xl p-4">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+            <span class="font-mono uppercase">Endosomal H<sub>II</sub> Escape</span>
+            <span id="kpi-escape-badge" class="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Optimal pKa</span>
+          </div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="kpi-escape-val" class="text-2xl font-bold font-mono text-white">18.4%</span>
+            <span class="text-xs text-slate-400 font-mono">of endocytosed</span>
+          </div>
+          <p id="kpi-escape-subtext" class="text-xs text-slate-400 mt-1.5">ΔProtonation (pH 7.4→5.6): +76.8%</p>
+        </div>
+
+        <!-- Card 4: Net Functional Cytosolic Dose -->
+        <div class="glass-panel metric-glow-rose rounded-xl p-4">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+            <span class="font-mono uppercase">Functional Bioavailability</span>
+            <span id="kpi-fate-badge" class="px-2 py-0.5 rounded text-[11px] font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">Hepatocyte Target</span>
+          </div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <span id="kpi-functional-id" class="text-2xl font-bold font-mono text-emerald-400">9.12%</span>
+            <span class="text-xs text-slate-400 font-mono">% Injected Dose</span>
+          </div>
+          <p id="kpi-fate-subtext" class="text-xs text-slate-400 mt-1.5">MPS Clearance: 34.2% | Lysosomal Trap: 40.4%</p>
+        </div>
+      </div>
+
+      <!-- Main 12-Col Grid: Left Controls (4 cols) + Right Visualizations (8 cols) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- Left Column: Formulation & Biophysics Parameter Controls -->
+        <div class="lg:col-span-4 glass-panel rounded-xl p-4 sm:p-5 flex flex-col justify-between space-y-4">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <div>
+                <h2 class="text-sm font-semibold text-white uppercase tracking-wider font-mono">1. Synthetic Identity Inputs</h2>
+                <p class="text-xs text-slate-400">Tune lipid physics &amp; surface chemistry</p>
+              </div>
+              <button id="reset-sliders-btn" class="text-xs font-mono text-sky-400 hover:text-sky-300 underline">Reset</button>
+            </div>
+
+            <div class="space-y-4">
+              <!-- Slider 1: Core Hydrodynamic Diameter -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <label for="slider-diameter" class="font-medium text-slate-300">Hydrodynamic Diameter (D<sub>h</sub>)</label>
+                  <span id="label-diameter" class="font-mono text-sky-400 font-semibold">80 nm</span>
+                </div>
+                <input id="slider-diameter" type="range" min="35" max="200" step="1" value="80" class="w-full" />
+                <div class="flex justify-between text-[11px] text-slate-500 font-mono mt-0.5">
+                  <span>35 nm (Fenestrae pass)</span>
+                  <span>110 nm (Cutoff)</span>
+                  <span>200 nm (MPS trap)</span>
+                </div>
+              </div>
+
+              <!-- Slider 2: Ionizable Lipid Apparent pKa -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <label for="slider-pka" class="font-medium text-slate-300">Ionizable Lipid Apparent pK<sub>a</sub></label>
+                  <span id="label-pka" class="font-mono text-sky-400 font-semibold">6.44</span>
+                </div>
+                <input id="slider-pka" type="range" min="5.00" max="7.60" step="0.02" value="6.44" class="w-full" />
+                <div class="flex justify-between text-[11px] text-slate-500 font-mono mt-0.5">
+                  <span>5.0 (Lysosomal trap)</span>
+                  <span>6.4 (Golden window)</span>
+                  <span>7.6 (Blood toxic)</span>
+                </div>
+              </div>
+
+              <!-- Slider 3: PEG-Lipid Molar % -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <label for="slider-peg" class="font-medium text-slate-300">PEG<sub>2000</sub>-Lipid Density (mol%)</label>
+                  <span id="label-peg" class="font-mono text-sky-400 font-semibold">1.5%</span>
+                </div>
+                <input id="slider-peg" type="range" min="0.2" max="5.0" step="0.1" value="1.5" class="w-full" />
+                <div class="flex justify-between text-[11px] text-slate-500 font-mono mt-0.5">
+                  <span>0.2% (Mushroom)</span>
+                  <span>1.5% (Semi-brush)</span>
+                  <span>5.0% (Escape block)</span>
+                </div>
+              </div>
+
+              <!-- Slider 4: PEG Acyl Anchor Length (Desorption Rate) -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <label for="slider-acyl" class="font-medium text-slate-300">PEG Acyl Anchor Carbon Chain</label>
+                  <span id="label-acyl" class="font-mono text-sky-400 font-semibold">C14 (DMG-PEG, Fast Shed)</span>
+                </div>
+                <input id="slider-acyl" type="range" min="14" max="18" step="2" value="14" class="w-full" />
+                <div class="flex justify-between text-[11px] text-slate-500 font-mono mt-0.5">
+                  <span>C14 (~45%/hr shed)</span>
+                  <span>C16 (~12%/hr)</span>
+                  <span>C18 (&lt;1%/hr stealth)</span>
+                </div>
+              </div>
+
+              <!-- Slider 5: Baseline Zeta Potential at pH 7.4 -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <label for="slider-zeta" class="font-medium text-slate-300">Baseline Surface Charge (ζ @ pH 7.4)</label>
+                  <span id="label-zeta" class="font-mono text-sky-400 font-semibold">-3 mV</span>
+                </div>
+                <input id="slider-zeta" type="range" min="-30" max="25" step="1" value="-3" class="w-full" />
+                <div class="flex justify-between text-[11px] text-slate-500 font-mono mt-0.5">
+                  <span>-30 mV (SR-A scavenger)</span>
+                  <span>0 mV (Neutral)</span>
+                  <span>+25 mV (Lung/RBC)</span>
+                </div>
+              </div>
+
+              <!-- Slider 6: Cholesterol / Helper Lipid Packing Factor -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <label for="slider-chol" class="font-medium text-slate-300">Cholesterol + Fusogenic Helper (mol%)</label>
+                  <span id="label-chol" class="font-mono text-sky-400 font-semibold">48%</span>
+                </div>
+                <input id="slider-chol" type="range" min="15" max="65" step="1" value="48" class="w-full" />
+                <div class="flex justify-between text-[11px] text-slate-500 font-mono mt-0.5">
+                  <span>15% (Rigid bilayer)</span>
+                  <span>48% (ApoE + HII cone)</span>
+                  <span>65% (Phase sep)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mechanistic Insight Diagnostic Box -->
+          <div class="p-3.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+              <span class="text-xs font-mono uppercase tracking-wider text-sky-300">Mechanistic Bottleneck Diagnosis</span>
+            </div>
+            <p id="diagnostic-text" class="text-xs text-slate-300 leading-relaxed">
+              Balanced C14 PEG shedding enables rapid Vroman transition from transient Albumin to ApoE within 15 min, driving LDLR uptake while pKa 6.44 maximizes endosomal HII membrane destabilization at pH 5.8.
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Particle Canvas + Dual Kinetic Plots -->
+        <div class="lg:col-span-8 space-y-5">
+
+          <!-- Live Biophysical Simulation Canvas Card -->
+          <div class="glass-panel rounded-xl p-4 sm:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div>
+                <h2 class="text-sm font-semibold text-white uppercase tracking-wider font-mono">2. Real-Time Biophysical Particle Visualizer</h2>
+                <p id="canvas-subtitle" class="text-xs text-slate-400">Stochastic Vroman protein exchange &amp; PEG brush dynamics in plasma</p>
+              </div>
+              <div class="flex items-center gap-1.5 bg-slate-900 p-1 rounded-lg border border-slate-800">
+                <button id="sim-mode-corona" class="px-2.5 py-1 rounded text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 transition">
+                  Plasma Corona Exchange
+                </button>
+                <button id="sim-mode-endosome" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-slate-200 border border-transparent transition">
+                  Endosomal Acidification &amp; Escape
+                </button>
+              </div>
+            </div>
+
+            <!-- Interactive Canvas Container -->
+            <div class="relative w-full h-72 sm:h-80 rounded-lg overflow-hidden bg-slate-950 border border-slate-800/90">
+              <canvas id="biophysics-canvas" class="w-full h-full block"></canvas>
+
+              <!-- Overlay Controls inside Canvas -->
+              <div id="endosome-ph-scrubber-wrap" class="hidden absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-lg px-3.5 py-2 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-mono text-sky-300">Vesicle Maturation Stage:</span>
+                  <span id="endosome-stage-label" class="text-xs font-semibold text-white">Early-to-Late Endosome (pH 5.8)</span>
+                </div>
+                <div class="flex items-center gap-2 flex-1 max-w-xs">
+                  <span class="text-[11px] font-mono text-slate-400">pH 7.4</span>
+                  <input id="slider-endosome-ph" type="range" min="4.7" max="7.4" step="0.05" value="5.8" class="w-full" />
+                  <span class="text-[11px] font-mono text-rose-400">pH 4.7</span>
+                </div>
+              </div>
+
+              <!-- Legend Overlay -->
+              <div class="absolute top-3 left-3 bg-slate-900/85 backdrop-blur-sm border border-slate-800 rounded-md px-2.5 py-1.5 flex flex-wrap items-center gap-3 text-[11px] font-mono">
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span>HSA (Soft)</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>ApoE (LDLR)</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>IgG/C3b (Opsonin)</span>
+                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>Clusterin (Stealth)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Two-Chart Grid: Vroman ODE Kinetics & Delivery Cascade -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Chart 1: Vroman Effect ODE Time-Course -->
+            <div class="glass-panel rounded-xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-xs font-mono uppercase tracking-wider text-slate-200 font-semibold">Vroman Competitive Corona Kinetics</h3>
+                  <p class="text-[11px] text-slate-400">RK4 ODE integration of surface coverage θ<sub>i</sub>(t) over 60 min</p>
+                </div>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">Langmuir-Vroman</span>
+              </div>
+              <div class="relative h-56">
+                <canvas id="chart-vroman"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 2: Endosomal Protonation & Membrane Destabilization Curve -->
+            <div class="glass-panel rounded-xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <h3 class="text-xs font-mono uppercase tracking-wider text-slate-200 font-semibold">pH-Triggered H<sub>II</sub> Escape Window</h3>
+                  <p class="text-[11px] text-slate-400">Lipid protonation α(pH) vs. Endosomal Escape Flux</p>
+                </div>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-emerald-300">Golden Window: pH 6.2–5.4</span>
+              </div>
+              <div class="relative h-56">
+                <canvas id="chart-escape"></canvas>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Organ Tropism & Delivery Cascade Bar -->
+      <div class="glass-panel rounded-xl p-4 sm:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <h3 class="text-xs font-mono uppercase tracking-wider text-slate-200 font-semibold">3. Quantitative In Vivo Delivery Bottleneck Cascade (% Injected Dose)</h3>
+            <p class="text-xs text-slate-400">Predicted mass-balance distribution across physiological barriers based on corona signature &amp; endosomal escape kinetics</p>
+          </div>
+          <span id="cascade-therapeutic-index" class="text-xs font-mono px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+            Target-to-MPS Ratio: 0.27
+          </span>
+        </div>
+
+        <!-- Stacked Progress Bar -->
+        <div class="w-full h-7 rounded-lg overflow-hidden flex bg-slate-900 border border-slate-800 p-0.5 gap-0.5">
+          <div id="bar-mps" class="h-full bg-rose-500/80 transition-all duration-300 flex items-center justify-center text-[11px] font-mono font-semibold text-white overflow-hidden" style="width: 34%" title="Kupffer & Splenic MPS Clearance">MPS</div>
+          <div id="bar-renal" class="h-full bg-slate-600 transition-all duration-300 flex items-center justify-center text-[11px] font-mono text-slate-200 overflow-hidden" style="width: 16%" title="Off-Target / Systemic / Renal">Off-Target</div>
+          <div id="bar-lysosome" class="h-full bg-amber-500/80 transition-all duration-300 flex items-center justify-center text-[11px] font-mono font-semibold text-slate-950 overflow-hidden" style="width: 41%" title="Endocytosed but Trapped in Lysosome">Lysosomal Trap</div>
+          <div id="bar-cytosol" class="h-full bg-emerald-400 transition-all duration-300 flex items-center justify-center text-[11px] font-mono font-bold text-slate-950 overflow-hidden" style="width: 9%" title="Functional Cytosolic Payload Release">Cytosol</div>
+        </div>
+
+        <!-- Legend & Values under bar -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-xs">
+          <div class="flex items-center justify-between p-2 rounded bg-slate-900/70 border border-slate-800/80">
+            <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-sm bg-rose-500"></span>MPS / Kupffer Loss</span>
+            <span id="val-bar-mps" class="font-mono font-semibold text-rose-400">34.2%</span>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded bg-slate-900/70 border border-slate-800/80">
+            <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-sm bg-slate-500"></span>Systemic / Off-Target</span>
+            <span id="val-bar-renal" class="font-mono font-semibold text-slate-300">16.3%</span>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded bg-slate-900/70 border border-slate-800/80">
+            <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-sm bg-amber-500"></span>Lysosomal Degradation</span>
+            <span id="val-bar-lysosome" class="font-mono font-semibold text-amber-400">40.4%</span>
+          </div>
+          <div class="flex items-center justify-between p-2 rounded bg-slate-900/70 border border-slate-800/80">
+            <span class="flex items-center gap-1.5 text-slate-300"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-400"></span>Functional Cytosolic</span>
+            <span id="val-bar-cytosol" class="font-mono font-semibold text-emerald-400">9.12%</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 2: 2D PHASE-SPACE EXPLORER ==================== -->
+    <section id="view-phasespace" class="hidden space-y-5">
+      <div class="glass-panel rounded-xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-5">
+          <div>
+            <h2 class="text-base font-semibold text-white">Multiparametric Formulation Phase-Space Explorer</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Click any coordinate on the 2D landscape to load that exact formulation into the Biophysical Workbench.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+              <label for="phase-axes-select" class="text-xs font-mono text-slate-400">Axes:</label>
+              <select id="phase-axes-select" class="bg-slate-900 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
+                <option value="pka_peg">Lipid pKa (X) vs. PEG Density mol% (Y)</option>
+                <option value="diam_zeta">Diameter nm (X) vs. Surface Charge mV (Y)</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <label for="phase-metric-select" class="text-xs font-mono text-slate-400">Readout:</label>
+              <select id="phase-metric-select" class="bg-slate-900 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-slate-200">
+                <option value="functional">Functional Cytosolic Bioavailability (%ID)</option>
+                <option value="apoe_ratio">Corona ApoE / Opsonin Specificity Ratio</option>
+                <option value="mps_loss">MPS / Kupffer Phagocytic Loss (%ID)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-8">
+            <div class="relative w-full h-96 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden p-2">
+              <canvas id="phasespace-canvas" class="w-full h-full cursor-crosshair block"></canvas>
+            </div>
+          </div>
+          <div class="lg:col-span-4 space-y-4">
+            <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+              <span class="text-xs font-mono uppercase tracking-wider text-sky-400">Selected Phase Coordinate</span>
+              <div id="phase-hover-details" class="space-y-2 text-xs text-slate-300 font-mono">
+                <div class="flex justify-between py-1 border-b border-slate-800"><span>Ionizable pKa:</span><span id="ph-val-x" class="text-white">6.44</span></div>
+                <div class="flex justify-between py-1 border-b border-slate-800"><span>PEG Density:</span><span id="ph-val-y" class="text-white">1.5%</span></div>
+                <div class="flex justify-between py-1 border-b border-slate-800"><span>Predicted Cytosolic %ID:</span><span id="ph-val-func" class="text-emerald-400 font-bold">9.12%</span></div>
+                <div class="flex justify-between py-1"><span>MPS Clearance %ID:</span><span id="ph-val-mps" class="text-rose-400">34.2%</span></div>
+              </div>
+              <button id="phase-jump-workbench-btn" class="w-full py-2 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-medium transition">
+                Inspect Selected Point in Workbench →
+              </button>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-2 text-xs text-slate-400 leading-relaxed">
+              <div class="font-semibold text-slate-200">Why the "PEG Dilemma" &amp; "pKa Cliff" Emerge:</div>
+              <p>
+                Notice the bright island of high cytosolic delivery around <span class="text-sky-300 font-mono">pKa 6.2–6.6</span> and <span class="text-sky-300 font-mono">PEG 1.0–2.2%</span>. Below 0.8% PEG, opsonization spikes in blood; above 3.0% PEG (especially with C18 anchors), steric shielding prevents both ApoE recruitment and endosomal membrane fusion.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: FORMULATION COMPARISON BENCH ==================== -->
+    <section id="view-compare" class="hidden space-y-5">
+      <div class="glass-panel rounded-xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4 mb-4">
+          <div>
+            <h2 class="text-base font-semibold text-white">Pinned Formulation Comparison Matrix</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Compare candidate nanoparticle designs across synthetic parameters, Vroman corona identity, and in vivo fate.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="copy-markdown-table-btn" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+              Copy Markdown Table
+            </button>
+            <button id="export-csv-btn" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/30 transition">
+              Export CSV Dataset
+            </button>
+            <button id="clear-bench-btn" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition">
+              Reset Defaults
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 font-mono uppercase">
+                <th class="py-3 px-3">Candidate Name</th>
+                <th class="py-3 px-3 text-right">D<sub>h</sub> (nm)</th>
+                <th class="py-3 px-3 text-right">Lipid pK<sub>a</sub></th>
+                <th class="py-3 px-3 text-right">PEG (mol%)</th>
+                <th class="py-3 px-3 text-right">Anchor</th>
+                <th class="py-3 px-3 text-right">ζ (mV)</th>
+                <th class="py-3 px-3 text-right">R<sub>F</sub>/D Brush</th>
+                <th class="py-3 px-3 text-right">ApoE / Ops</th>
+                <th class="py-3 px-3 text-right">Escape %</th>
+                <th class="py-3 px-3 text-right text-emerald-400">Cytosolic %ID</th>
+                <th class="py-3 px-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="comparison-table-body" class="divide-y divide-slate-800/70 font-mono">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: ARCHITECTURE & GITHUB GUIDE ==================== -->
+    <section id="view-guide" class="hidden space-y-5">
+      <div class="glass-panel rounded-xl p-5 sm:p-6 space-y-6">
+        <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-widest text-sky-400">PI Mentorship &amp; Code Walkthrough</span>
+            <h2 class="text-lg font-semibold text-white mt-1">How This Project Works &amp; How to Showcase It on Your GitHub</h2>
+            <p class="text-xs text-slate-400 mt-1 max-w-3xl">
+              Most computational biology repos ignore formulation chemistry, and most drug delivery tools use static regression tables. By coupling <strong>De Gennes polymer physics</strong>, <strong>competitive Vroman ODE kinetics</strong>, and <strong>endosomal protonation thermodynamics</strong> in a zero-dependency interactive web simulator, your GitHub stands out to both wet-lab formulation teams and computational systems biologists.
+            </p>
+          </div>
+          <button id="copy-readme-btn" class="px-3.5 py-2 rounded-lg text-xs font-medium bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 transition flex items-center gap-1.5">
+            <span>Copy Ready-to-Use GitHub README.md</span>
+          </button>
+        </div>
+
+        <!-- 3-Pillar Mathematical Architecture -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="text-xs font-mono text-sky-400 uppercase">Module 01 // Polymer Brush Physics</div>
+            <h3 class="text-sm font-semibold text-white">De Gennes Mushroom-to-Brush Transition</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              From PEG molar fraction <span class="font-mono text-slate-200">f<sub>PEG</sub></span> and mean lipid headgroup area (<span class="font-mono text-slate-200">A<sub>L</sub> ≈ 0.65 nm²</span>), we calculate inter-chain grafting distance <span class="font-mono text-slate-200">D = √(A<sub>L</sub> / f<sub>PEG</sub>)</span> and compare it against the Flory radius <span class="font-mono text-slate-200">R<sub>F</sub> = a·N<sup>3/5</sup></span> (<span class="font-mono text-slate-200">3.43 nm</span> for PEG<sub>2000</sub>). As <span class="font-mono text-slate-200">R<sub>F</sub>/D &gt; 1.0</span>, chains extend into a steric brush that exponentially dampens protein association rate constants <span class="font-mono text-slate-200">k<sub>on,i</sub></span>.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="text-xs font-mono text-amber-400 uppercase">Module 02 // Competitive ODE Solver</div>
+            <h3 class="text-sm font-semibold text-white">4th-Order Runge-Kutta Vroman Kinetics</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Rather than hardcoding static corona percentages, the function <span class="font-mono text-slate-200">solveVromanRK4()</span> integrates coupled differential equations <span class="font-mono text-slate-200">dθ<sub>i</sub>/dt</span> over 3,600 seconds. High-abundance Albumin (<span class="font-mono text-slate-200">600 μM</span>) dominates early milliseconds, while PEG acyl desorption (<span class="font-mono text-slate-200">k<sub>shed</sub></span> for C14 vs. C18) opens binding sites for high-affinity ApoE or C3b/IgG opsonins.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="text-xs font-mono text-emerald-400 uppercase">Module 03 // Endosomal Escape Window</div>
+            <h3 class="text-sm font-semibold text-white">Henderson-Hasselbalch &amp; H<sub>II</sub> Phase Flux</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              As the endosome acidifies from <span class="font-mono text-slate-200">pH 7.4 → 4.7</span>, ionizable lipids protonate via <span class="font-mono text-slate-200">α = 1 / (1 + 10<sup>pH - pKa</sup>)</span>. Escape requires ion-pairing with anionic endosomal BMP lipids inside the <span class="font-mono text-slate-200">pH 6.2–5.4</span> window before lysosomal hydrolases degrade the payload at <span class="font-mono text-slate-200">pH &lt; 5.0</span>.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step-by-Step Repo Structure & How to Customize -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <h3 class="text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold">Recommended GitHub Repository Structure</h3>
+            <pre class="text-xs font-mono text-sky-300 overflow-x-auto leading-relaxed">corona-flux-nanomedicine/
+├── index.html                # Self-contained GitHub Pages live app
+├── README.md                 # Biophysical equations & citations
+├── data/
+│   └── reference_lnps.csv    # Benchmark DLS, Zeta, & cryo-EM dataset
+└── src/
+    ├── deGennesBrush.js      # Flory radius & acyl shedding calculations
+    ├── vromanSolverRK4.js    # 4-species competitive Langmuir ODE solver
+    └── endosomalEscape.js    # Henderson-Hasselbalch & H_II phase model</pre>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <h3 class="text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold">How to Extend This with Your Own Wet-Lab Data</h3>
+            <ul class="space-y-2 text-xs text-slate-300 leading-relaxed">
+              <li><strong class="text-white">1. Add Your Custom Ionizable Lipids or Polymers:</strong> Edit the <span class="font-mono text-sky-300">PRESETS</span> object in the script to include your own synthesized lipidoids, PLGA-b-PEG copolymers, or exosome surface formulations with measured DLS diameter and TNS-assay apparent pK<sub>a</sub>.</li>
+              <li><strong class="text-white">2. Calibrate <span class="font-mono text-sky-300">k<sub>on</sub></span> &amp; <span class="font-mono text-sky-300">k<sub>off</sub></span> from LC-MS/MS Proteomics:</strong> Replace the baseline affinity constants in <span class="font-mono text-sky-300">solveVromanRK4()</span> with experimental equilibrium dissociation constants (<span class="font-mono text-sky-300">K<sub>D</sub></span>) from BLI/SPR or nano-LC-MS/MS corona time-courses.</li>
+              <li><strong class="text-white">3. Deploy Instantly on GitHub Pages:</strong> Push <span class="font-mono text-sky-300">index.html</span> to a new repository, enable <em>Settings → Pages → Deploy from main branch</em>, and put the live interactive link at the top of your CV and manuscripts.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ============================================================================
+    // 1. APPLICATION STATE & BENCHMARK FORMULATION PRESETS
+    // ============================================================================
+    const PRESETS = {
+      mc3_lnp: {
+        name: "Onpattro-like LNP (MC3)",
+        diameter: 80,
+        pka: 6.44,
+        peg: 1.5,
+        acyl: 14,
+        zeta: -3,
+        chol: 48
+      },
+      stealth_liposome: {
+        name: "Stealth Liposome (Doxil-like)",
+        diameter: 95,
+        pka: 5.20,
+        peg: 5.0,
+        acyl: 18,
+        zeta: -12,
+        chol: 38
+      },
+      lung_sort: {
+        name: "Cationic Lung SORT LNP",
+        diameter: 110,
+        pka: 7.25,
+        peg: 1.0,
+        acyl: 14,
+        zeta: 18,
+        chol: 40
+      },
+      plga_peg: {
+        name: "PLGA-PEG Core-Shell NP",
+        diameter: 145,
+        pka: 5.60,
+        peg: 3.2,
+        acyl: 16,
+        zeta: -8,
+        chol: 22
+      }
+    };
+
+    const state = {
+      activeTab: 'workbench',
+      simMode: 'corona', // 'corona' or 'endosome'
+      milieu: 'healthy_plasma',
+      endosomePh: 5.8,
+      diameter: 80,
+      pka: 6.44,
+      peg: 1.5,
+      acyl: 14,
+      zeta: -3,
+      chol: 48,
+      phaseAxes: 'pka_peg',
+      phaseMetric: 'functional',
+      pinnedFormulations: []
+    };
+
+    // ============================================================================
+    // 2. BIOPHYSICAL & SYSTEMS NANOPHARMACOLOGY ENGINE
+    // ============================================================================
+
+    /**
+     * Computes De Gennes PEG conformation parameters for PEG2000 (N ≈ 45 monomers, a = 0.35 nm)
+     */
+    function computePegPhysics(pegMolPercent, acylLength) {
+      const fPeg = Math.max(0.001, pegMolPercent / 100);
+      const areaPerLipid = 0.65; // nm^2 average membrane footprint
+      const floryRadius = 0.35 * Math.pow(45.4, 0.6); // ~3.43 nm for PEG2000
+      const graftingDistance = Math.sqrt(areaPerLipid / fPeg); // D in nm
+      const rfOverD = floryRadius / graftingDistance;
+
+      let regime = 'Mushroom';
+      if (rfOverD >= 1.75) regime = 'Dense Brush';
+      else if (rfOverD >= 1.0) regime = 'Transition Brush';
+
+      // PEG desorption rate constant k_shed (s^-1) depends strongly on acyl chain hydrophobic anchor
+      // C14 (DMG-PEG) sheds ~45%/hr in plasma; C16 ~12%/hr; C18 (DSPE-PEG) < 1%/hr
+      let shedRatePerSec = 0.00022; // C14 default
+      if (acylLength === 16) shedRatePerSec = 0.000045;
+      else if (acylLength >= 18) shedRatePerSec = 0.000004;
+
+      return {
+        floryRadius,
+        graftingDistance,
+        rfOverD,
+        regime,
+        shedRatePerSec
+      };
+    }
+
+    /**
+     * Solves competitive Vroman Effect protein corona kinetics over 3600 seconds (60 min)
+     * using 4th-Order Runge-Kutta (RK4) integration.
+     * Species:
+     *   0: HSA (Albumin) - fast association, fast dissociation (soft corona)
+     *   1: ApoE - moderate association, high affinity for neutral cholesterol-rich surfaces
+     *   2: Opsonins (IgG + Complement C3b) - promoted by cationic/strong anionic charge & large size
+     *   3: Clusterin (ApoJ) - stealth dysopsonin promoted by dense PEG brushes
+     */
+    function solveVromanRK4(params) {
+      const pegPhys = computePegPhysics(params.peg, params.acyl);
+      const pH0 = params.milieu === 'tumor_stroma' ? 6.75 : 7.40;
+
+      // Ionizable lipid protonation in blood/milieu
+      const alphaBlood = 1.0 / (1.0 + Math.pow(10, pH0 - params.pka));
+      const effectiveZeta = params.zeta + alphaBlood * 26.0;
+
+      // Relative concentrations & baseline kinetic parameters
+      const apoeMultiplier = params.milieu === 'apoe_deficient' ? 0.08 : 1.0;
+      const opsoninMultiplier = params.milieu === 'tumor_stroma' ? 1.45 : 1.0;
+
+      const cholFactor = 0.4 + 1.25 * (params.chol / 50.0);
+      const chargePenalty = 1.0 + 0.065 * Math.pow(Math.abs(effectiveZeta), 1.35);
+      const sizeCurvatureFactor = Math.pow(params.diameter / 80.0, 0.45);
+
+      const dt = 5.0; // 5-second RK4 step
+      const steps = 720; // 3600 seconds (60 min)
+      const timeMin = [];
+      const seriesHSA = [];
+      const seriesApoE = [];
+      const seriesOps = [];
+      const seriesClu = [];
+
+      // State vector y = [theta_HSA, theta_ApoE, theta_Ops, theta_Clu, currentPegPct]
+      let y = [0.0, 0.0, 0.0, 0.0, params.peg];
+
+      function derivatives(stateVec) {
+        const thHSA = stateVec[0];
+        const thApoE = stateVec[1];
+        const thOps = stateVec[2];
+        const thClu = stateVec[3];
+        const curPeg = Math.max(0.15, stateVec[4]);
+
+        const curFlory = 3.43 / Math.sqrt(0.65 / (curPeg / 100.0));
+        // Steric hindrance factor from instantaneous PEG brush density
+        const stericShield = Math.exp(-0.68 * Math.pow(curFlory, 1.45));
+
+        const freeSurface = Math.max(0.0, 1.0 - (thHSA + thApoE + thOps + thClu));
+
+        // Effective adsorption rates (s^-1)
+        const kOnHSA = 0.055 * stericShield;
+        const kOffHSA = 0.014;
+
+        // ApoE binds best when PEG partially sheds and neutral cholesterol domain is accessible
+        const neutralWindow = Math.exp(-Math.pow(effectiveZeta - 1.5, 2) / 190.0);
+        const kOnApoE = 0.011 * stericShield * cholFactor * neutralWindow * apoeMultiplier;
+        const kOffApoE = 0.00055;
+
+        // Opsonins (IgG/C3b) surge with charge magnitude and larger particle radius
+        const kOnOps = 0.0042 * stericShield * chargePenalty * sizeCurvatureFactor * opsoninMultiplier;
+        const kOffOps = 0.00045;
+
+        // Clusterin (dysopsonin) associates with PEGylated/hydrophilic coronas
+        const kOnClu = 0.0055 * (0.35 + 0.55 * Math.min(2.2, curFlory)) * stericShield;
+        const kOffClu = 0.0008;
+
+        // Competitive Vroman displacement of loosely bound HSA by high-affinity proteins
+        const dispByApoE = 0.0048 * cholFactor * neutralWindow * apoeMultiplier * stericShield * thHSA;
+        const dispByOps = 0.0024 * chargePenalty * opsoninMultiplier * stericShield * thHSA;
+        const dispByClu = 0.0020 * stericShield * thHSA;
+
+        const dHSA = kOnHSA * freeSurface - kOffHSA * thHSA - (dispByApoE + dispByOps + dispByClu);
+        const dApoE = kOnApoE * freeSurface - kOffApoE * thApoE + dispByApoE;
+        const dOps = kOnOps * freeSurface - kOffOps * thOps + dispByOps;
+        const dClu = kOnClu * freeSurface - kOffClu * thClu + dispByClu;
+
+        // PEG shedding toward a residual equilibrium anchor floor (18% of initial)
+        const dPeg = -pegPhys.shedRatePerSec * (curPeg - 0.18 * params.peg);
+
+        return [dHSA, dApoE, dOps, dClu, dPeg];
+      }
+
+      for (let step = 0; step <= steps; step++) {
+        if (step % 12 === 0) { // Record every 1 minute
+          const totalCov = Math.max(0.0001, y[0] + y[1] + y[2] + y[3]);
+          const normScale = totalCov > 0.99 ? (100.0 / totalCov) : 100.0;
+          timeMin.push(step * dt / 60.0);
+          seriesHSA.push(+(y[0] * normScale).toFixed(2));
+          seriesApoE.push(+(y[1] * normScale).toFixed(2));
+          seriesOps.push(+(y[2] * normScale).toFixed(2));
+          seriesClu.push(+(y[3] * normScale).toFixed(2));
+        }
+
+        const k1 = derivatives(y);
+        const y2 = y.map((v, i) => v + 0.5 * dt * k1[i]);
+        const k2 = derivatives(y2);
+        const y3 = y.map((v, i) => v + 0.5 * dt * k2[i]);
+        const k3 = derivatives(y3);
+        const y4 = y.map((v, i) => v + dt * k3[i]);
+        const k4 = derivatives(y4);
+
+        y = y.map((v, i) => Math.max(0.0, v + (dt / 6.0) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i])));
+      }
+
+      const lastIdx = seriesApoE.length - 1;
+      const finalHSA = seriesHSA[lastIdx];
+      const finalApoE = seriesApoE[lastIdx];
+      const finalOps = seriesOps[lastIdx];
+      const finalClu = seriesClu[lastIdx];
+      const finalPeg = y[4];
+
+      return {
+        timeMin,
+        seriesHSA,
+        seriesApoE,
+        seriesOps,
+        seriesClu,
+        finalHSA,
+        finalApoE,
+        finalOps,
+        finalClu,
+        finalPeg,
+        apoeToOpsoninRatio: finalApoE / Math.max(1.0, finalOps),
+        pegPhys
+      };
+    }
+
+    /**
+     * Computes pH-dependent Ionizable Lipid protonation and H_II hexagonal membrane
+     * destabilization across the endolysosomal maturation gradient (pH 7.4 -> 4.7)
+     */
+    function computeEndosomalEscape(params, vromanResult) {
+      const phAxis = [];
+      const protonationCurve = [];
+      const escapeFluxCurve = [];
+
+      // Residual PEG at endosomal entry (~30-60 min) sterically hinders close bilayer apposition
+      const residualPeg = vromanResult.finalPeg;
+      const fusionStericBarrier = Math.exp(-0.38 * Math.pow(residualPeg, 1.35));
+      const helperConeFactor = 0.45 + 0.85 * (params.chol / 50.0);
+
+      for (let ph = 7.4; ph >= 4.7 - 0.001; ph -= 0.1) {
+        const roundedPh = +ph.toFixed(1);
+        phAxis.push(roundedPh);
+
+        const alpha = 1.0 / (1.0 + Math.pow(10, roundedPh - params.pka));
+        protonationCurve.push(+(alpha * 100).toFixed(1));
+
+        // Endosomal BMP lipid accessibility & intact mRNA survival window peaks around pH 5.85
+        const endosomeWindow = Math.exp(-Math.pow(roundedPh - 5.85, 2) / (2 * Math.pow(0.42, 2)));
+        // Premature protonation at pH 7.4 reduces specific endosomal trigger contrast
+        const alpha74 = 1.0 / (1.0 + Math.pow(10, 7.4 - params.pka));
+        const deltaTrigger = Math.max(0.05, alpha - 0.65 * alpha74);
+
+        const instantFlux = 100.0 * alpha * deltaTrigger * endosomeWindow * fusionStericBarrier * helperConeFactor;
+        escapeFluxCurve.push(+Math.min(99.0, instantFlux).toFixed(2));
+      }
+
+      const alpha74 = 1.0 / (1.0 + Math.pow(10, 7.4 - params.pka));
+      const alpha56 = 1.0 / (1.0 + Math.pow(10, 5.6 - params.pka));
+      const deltaProtonation = (alpha56 - alpha74) * 100.0;
+
+      // Net endosomal escape efficiency (% of endocytosed particles that release cargo before lysosomal degradation)
+      const pkaSweetSpot = Math.exp(-Math.pow(params.pka - 6.42, 2) / (2 * Math.pow(0.48, 2)));
+      const escapeEfficiency = Math.min(
+        48.0,
+        Math.max(1.2, 34.5 * pkaSweetSpot * fusionStericBarrier * helperConeFactor)
+      );
+
+      return {
+        phAxis,
+        protonationCurve,
+        escapeFluxCurve,
+        deltaProtonation,
+        escapeEfficiency
+      };
+    }
+
+    /**
+     * Computes whole-body 4-compartment pharmacokinetic fate (% Injected Dose)
+     */
+    function evaluateFullModel(params) {
+      const vroman = solveVromanRK4(params);
+      const escape = computeEndosomalEscape(params, vroman);
+
+      // Fenestrae extravasation efficiency (Liver sinusoidal fenestrae ~ 105-110 nm)
+      const fenestraePass = 1.0 / (1.0 + Math.exp((params.diameter - 115.0) / 18.0));
+
+      // MPS (Kupffer cell + splenic macrophage) clearance driven by IgG/C3b opsonins & large diameter
+      const rawMps = 14.0 + 1.32 * vroman.finalOps + 18.0 * (1.0 - fenestraePass) - 0.25 * vroman.finalClu;
+      const mpsClearance = Math.min(82.0, Math.max(8.0, rawMps));
+
+      // Target receptor uptake (LDLR hepatocyte or Lung endothelial SORT for cationic particles)
+      const remainingPool = 100.0 - mpsClearance;
+      let targetUptakeFraction = 0.0;
+      let primaryOrgan = 'Hepatocyte (LDLR)';
+
+      const alpha74 = 1.0 / (1.0 + Math.pow(10, 7.4 - params.pka));
+      const effectiveZeta = params.zeta + alpha74 * 26.0;
+
+      if (effectiveZeta > 12.0) {
+        primaryOrgan = 'Lung Endothelium (SORT)';
+        targetUptakeFraction = Math.min(0.78, 0.35 + 0.015 * effectiveZeta);
+      } else if (params.diameter > 125 && params.peg >= 3.0) {
+        primaryOrgan = 'Spleen / EPR Stroma';
+        targetUptakeFraction = Math.min(0.65, 0.22 + 0.008 * vroman.finalClu);
+      } else {
+        primaryOrgan = 'Hepatocyte (LDLR)';
+        targetUptakeFraction = Math.min(0.84, (0.18 + 0.016 * vroman.finalApoE) * (0.45 + 0.55 * fenestraePass));
+      }
+
+      const totalEndocytosedId = remainingPool * targetUptakeFraction;
+      const functionalCytosolicId = totalEndocytosedId * (escape.escapeEfficiency / 100.0);
+      const lysosomalTrapId = totalEndocytosedId - functionalCytosolicId;
+      const systemicOffTargetId = Math.max(0.0, 100.0 - (mpsClearance + functionalCytosolicId + lysosomalTrapId));
+
+      return {
+        vroman,
+        escape,
+        mpsClearance,
+        functionalCytosolicId,
+        lysosomalTrapId,
+        systemicOffTargetId,
+        primaryOrgan,
+        effectiveZeta
+      };
+    }
+
+    // ============================================================================
+    // 3. CHART.JS INITIALIZATION & UPDATES
+    // ============================================================================
+    let chartVroman = null;
+    let chartEscape = null;
+
+    function initCharts() {
+      const ctxVroman = document.getElementById('chart-vroman').getContext('2d');
+      chartVroman = new Chart(ctxVroman, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'ApoE (LDLR Ligand)',
+              data: [],
+              borderColor: '#fbbf24',
+              backgroundColor: 'rgba(251, 191, 36, 0.12)',
+              borderWidth: 2.2,
+              tension: 0.3,
+              pointRadius: 0
+            },
+            {
+              label: 'IgG + C3b (Opsonins)',
+              data: [],
+              borderColor: '#f43f5e',
+              backgroundColor: 'rgba(244, 63, 94, 0.1)',
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 0
+            },
+            {
+              label: 'Clusterin (Stealth)',
+              data: [],
+              borderColor: '#34d399',
+              borderWidth: 1.8,
+              borderDash: [4, 3],
+              tension: 0.3,
+              pointRadius: 0
+            },
+            {
+              label: 'Albumin (Soft Corona)',
+              data: [],
+              borderColor: '#94a3b8',
+              borderWidth: 1.6,
+              tension: 0.3,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { color: '#cbd5e1', font: { family: 'JetBrains Mono', size: 10 }, boxWidth: 10 }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Plasma Exposure Time (min)', color: '#94a3b8', font: { size: 10 } },
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 7 },
+              grid: { color: 'rgba(148, 163, 184, 0.08)' }
+            },
+            y: {
+              min: 0,
+              max: 80,
+              title: { display: true, text: 'Surface Coverage θ (%)', color: '#94a3b8', font: { size: 10 } },
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 } },
+              grid: { color: 'rgba(148, 163, 184, 0.08)' }
+            }
+          }
+        }
+      });
+
+      const ctxEscape = document.getElementById('chart-escape').getContext('2d');
+      chartEscape = new Chart(ctxEscape, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'H_II Membrane Escape Flux',
+              data: [],
+              borderColor: '#34d399',
+              backgroundColor: 'rgba(52, 211, 153, 0.18)',
+              fill: true,
+              borderWidth: 2.2,
+              tension: 0.35,
+              pointRadius: 0
+            },
+            {
+              label: 'Cationic Protonation α (%)',
+              data: [],
+              borderColor: '#38bdf8',
+              borderWidth: 1.8,
+              borderDash: [4, 3],
+              tension: 0.35,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { color: '#cbd5e1', font: { family: 'JetBrains Mono', size: 10 }, boxWidth: 10 }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Endolysosomal Maturation pH (7.4 → 4.7)', color: '#94a3b8', font: { size: 10 } },
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 8 },
+              grid: { color: 'rgba(148, 163, 184, 0.08)' }
+            },
+            y: {
+              min: 0,
+              max: 100,
+              title: { display: true, text: 'Protonation / Escape Index (%)', color: '#94a3b8', font: { size: 10 } },
+              ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 } },
+              grid: { color: 'rgba(148, 163, 184, 0.08)' }
+            }
+          }
+        }
+      });
+    }
+
+    // ============================================================================
+    // 4. REAL-TIME HTML5 CANVAS PARTICLE & ENDOSOME PHYSICS ENGINE
+    // ============================================================================
+    const bioCanvas = document.getElementById('biophysics-canvas');
+    const bioCtx = bioCanvas.getContext('2d');
+    let animFrameId = null;
+    let simParticles = [];
+    let cargoParticles = [];
+
+    function initParticleSystem() {
+      simParticles = [];
+      const types = ['HSA', 'ApoE', 'Ops', 'Clu'];
+      for (let i = 0; i < 68; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 70 + Math.random() * 140;
+        simParticles.push({
+          type: types[i % 4],
+          angle: angle,
+          dist: dist,
+          vAngle: (Math.random() - 0.5) * 0.018,
+          phase: Math.random() * Math.PI * 2,
+          size: 4 + (i % 3)
+        });
+      }
+
+      cargoParticles = [];
+      for (let i = 0; i < 28; i++) {
+        cargoParticles.push({
+          angle: (i / 28) * Math.PI * 2,
+          rFrac: 0.2 + 0.65 * Math.random(),
+          escaped: false,
+          escapeDist: 0,
+          speed: 0.6 + Math.random() * 0.9
+        });
+      }
+    }
+
+    function resizeBioCanvas() {
+      const rect = bioCanvas.parentElement.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        bioCanvas.width = rect.width * window.devicePixelRatio;
+        bioCanvas.height = rect.height * window.devicePixelRatio;
+        bioCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      }
+    }
+
+    let latestModelResult = null;
+    let simTick = 0;
+
+    function renderBiophysicsCanvas() {
+      simTick += 0.025;
+      const width = bioCanvas.width / window.devicePixelRatio;
+      const height = bioCanvas.height / window.devicePixelRatio;
+      bioCtx.clearRect(0, 0, width, height);
+
+      if (!latestModelResult) {
+        animFrameId = requestAnimationFrame(renderBiophysicsCanvas);
+        return;
+      }
+
+      const cx = width * 0.5;
+      const cy = height * 0.5;
+      // Scale visual radius smoothly between 32px and 72px
+      const npRadius = 30 + ((state.diameter - 35) / 165) * 42;
+
+      if (state.simMode === 'corona') {
+        drawCoronaMode(cx, cy, width, height, npRadius);
+      } else {
+        drawEndosomeMode(cx, cy, width, height, npRadius);
+      }
+
+      animFrameId = requestAnimationFrame(renderBiophysicsCanvas);
+    }
+
+    function drawCoronaMode(cx, cy, width, height, npRadius) {
+      const vroman = latestModelResult.vroman;
+
+      // Subtle radial background field
+      const bgGrad = bioCtx.createRadialGradient(cx, cy, npRadius * 0.4, cx, cy, Math.max(width, height) * 0.6);
+      bgGrad.addColorStop(0, 'rgba(56, 189, 248, 0.10)');
+      bgGrad.addColorStop(1, 'rgba(7, 11, 20, 0.0)');
+      bioCtx.fillStyle = bgGrad;
+      bioCtx.fillRect(0, 0, width, height);
+
+      // Draw dynamic PEG2000 polymer chains around NP perimeter
+      const numChains = Math.round(12 + state.peg * 12);
+      const brushExtension = 8 + Math.min(24, vroman.pegPhys.rfOverD * 10);
+      bioCtx.strokeStyle = 'rgba(56, 189, 248, 0.52)';
+      bioCtx.lineWidth = 1.3;
+
+      for (let i = 0; i < numChains; i++) {
+        const baseAngle = (i / numChains) * Math.PI * 2 + simTick * 0.08;
+        const x0 = cx + Math.cos(baseAngle) * npRadius;
+        const y0 = cy + Math.sin(baseAngle) * npRadius;
+
+        // Mushroom regime curls more laterally; brush extends radially
+        const wiggle = (vroman.pegPhys.rfOverD < 1.0 ? 0.24 : 0.08) * Math.sin(simTick * 2.5 + i);
+        const xMid = cx + Math.cos(baseAngle + wiggle) * (npRadius + brushExtension * 0.55);
+        const yMid = cy + Math.sin(baseAngle + wiggle) * (npRadius + brushExtension * 0.55);
+        const x1 = cx + Math.cos(baseAngle - wiggle * 0.6) * (npRadius + brushExtension);
+        const y1 = cy + Math.sin(baseAngle - wiggle * 0.6) * (npRadius + brushExtension);
+
+        bioCtx.beginPath();
+        bioCtx.moveTo(x0, y0);
+        bioCtx.quadraticCurveTo(xMid, yMid, x1, y1);
+        bioCtx.stroke();
+      }
+
+      // Nanoparticle lipid core
+      const coreGrad = bioCtx.createRadialGradient(cx - npRadius * 0.25, cy - npRadius * 0.25, 4, cx, cy, npRadius);
+      coreGrad.addColorStop(0, '#38bdf8');
+      coreGrad.addColorStop(0.65, '#1e3a8a');
+      coreGrad.addColorStop(1, '#0f172a');
+      bioCtx.fillStyle = coreGrad;
+      bioCtx.beginPath();
+      bioCtx.arc(cx, cy, npRadius, 0, Math.PI * 2);
+      bioCtx.fill();
+      bioCtx.strokeStyle = 'rgba(125, 211, 252, 0.65)';
+      bioCtx.lineWidth = 2;
+      bioCtx.stroke();
+
+      // Draw mRNA/payload strands inside core
+      bioCtx.strokeStyle = 'rgba(52, 211, 153, 0.75)';
+      bioCtx.lineWidth = 1.6;
+      for (let s = -1; s <= 1; s++) {
+        bioCtx.beginPath();
+        for (let x = -npRadius * 0.55; x <= npRadius * 0.55; x += 3) {
+          const y = s * npRadius * 0.28 + Math.sin(x * 0.22 + simTick * 2 + s) * 4.5;
+          if (x === -npRadius * 0.55) bioCtx.moveTo(cx + x, cy + y);
+          else bioCtx.lineTo(cx + x, cy + y);
+        }
+        bioCtx.stroke();
+      }
+
+      // Compute how many particles of each class should be bound in the hard corona
+      const shares = {
+        HSA: vroman.finalHSA / 100,
+        ApoE: vroman.finalApoE / 100,
+        Ops: vroman.finalOps / 100,
+        Clu: vroman.finalClu / 100
+      };
+      const colors = {
+        HSA: '#94a3b8',
+        ApoE: '#fbbf24',
+        Ops: '#f43f5e',
+        Clu: '#34d399'
+      };
+
+      simParticles.forEach((p, idx) => {
+        p.angle += p.vAngle;
+        const typeShare = shares[p.type] || 0.1;
+        const isBound = (idx % 17) / 17.0 < typeShare * 1.45;
+        const targetDist = isBound
+          ? npRadius + brushExtension * 0.65 + Math.sin(simTick * 2 + p.phase) * 2.5
+          : npRadius + brushExtension + 24 + ((idx * 13) % 95) + Math.sin(simTick + p.phase) * 8;
+
+        p.dist += (targetDist - p.dist) * 0.08;
+        const px = cx + Math.cos(p.angle) * p.dist;
+        const py = cy + Math.sin(p.angle) * p.dist;
+
+        bioCtx.fillStyle = colors[p.type];
+        bioCtx.beginPath();
+        bioCtx.arc(px, py, isBound ? p.size + 1.2 : p.size, 0, Math.PI * 2);
+        bioCtx.fill();
+
+        if (isBound) {
+          bioCtx.strokeStyle = 'rgba(255,255,255,0.35)';
+          bioCtx.lineWidth = 0.8;
+          bioCtx.stroke();
+        }
+      });
+
+      // Right-hand HUD Telemetry inside Canvas
+      bioCtx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+      bioCtx.fillRect(width - 195, 12, 183, 76);
+      bioCtx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+      bioCtx.strokeRect(width - 195, 12, 183, 76);
+
+      bioCtx.fillStyle = '#e2e8f0';
+      bioCtx.font = '600 11px "JetBrains Mono", monospace';
+      bioCtx.fillText(`Effective ζ: ${latestModelResult.effectiveZeta.toFixed(1)} mV`, width - 185, 30);
+      bioCtx.fillStyle = '#94a3b8';
+      bioCtx.font = '10px "JetBrains Mono", monospace';
+      bioCtx.fillText(`Remaining PEG: ${vroman.finalPeg.toFixed(2)} mol%`, width - 185, 48);
+      bioCtx.fillStyle = '#38bdf8';
+      bioCtx.fillText(`Tropism: ${latestModelResult.primaryOrgan.split(' ')[0]}`, width - 185, 65);
+      bioCtx.fillStyle = '#34d399';
+      bioCtx.fillText(`Brush R_F/D: ${vroman.pegPhys.rfOverD.toFixed(2)}`, width - 185, 80);
+    }
+
+    function drawEndosomeMode(cx, cy, width, height, npRadius) {
+      const ph = state.endosomePh;
+      const alpha = 1.0 / (1.0 + Math.pow(10, ph - state.pka));
+      const endosomeWindow = Math.exp(-Math.pow(ph - 5.85, 2) / (2 * Math.pow(0.42, 2)));
+      const residualPeg = latestModelResult.vroman.finalPeg;
+      const stericFactor = Math.exp(-0.38 * Math.pow(residualPeg, 1.35));
+      const poreIntensity = Math.min(1.0, alpha * endosomeWindow * stericFactor * (state.chol / 42.0) * 1.65);
+
+      const endoRadius = Math.min(width, height) * 0.36;
+
+      // Endosomal lumen proton glow increases as pH drops
+      const acidFrac = (7.4 - ph) / (7.4 - 4.7);
+      const lumenGrad = bioCtx.createRadialGradient(cx, cy, 10, cx, cy, endoRadius);
+      lumenGrad.addColorStop(0, `rgba(244, 63, 94, ${0.06 + acidFrac * 0.22})`);
+      lumenGrad.addColorStop(1, `rgba(56, 189, 248, ${0.08 + alpha * 0.18})`);
+      bioCtx.fillStyle = lumenGrad;
+      bioCtx.beginPath();
+      bioCtx.arc(cx, cy, endoRadius, 0, Math.PI * 2);
+      bioCtx.fill();
+
+      // Draw Endosomal Limiting Membrane (with H_II pore gaps on the right if poreIntensity > 0.25)
+      bioCtx.lineWidth = 4;
+      const numSegments = 48;
+      for (let i = 0; i < numSegments; i++) {
+        const a1 = (i / numSegments) * Math.PI * 2;
+        const a2 = ((i + 0.78) / numSegments) * Math.PI * 2;
+        const isRightPoreZone = Math.abs(Math.atan2(Math.sin(a1), Math.cos(a1))) < 0.65;
+        if (isRightPoreZone && poreIntensity > 0.22 && i % 2 === 0) {
+          continue; // Nucleated H_II membrane pore!
+        }
+        bioCtx.strokeStyle = isRightPoreZone && poreIntensity > 0.22 ? '#34d399' : '#475569';
+        bioCtx.beginPath();
+        bioCtx.arc(cx, cy, endoRadius, a1, a2);
+        bioCtx.stroke();
+      }
+
+      // Nanoparticle shifts toward the limiting endosomal membrane as protonation rises
+      const shiftX = cx + alpha * (endoRadius - npRadius - 8) * 0.65;
+      const npGrad = bioCtx.createRadialGradient(shiftX, cy, 3, shiftX, cy, npRadius * 0.85);
+      npGrad.addColorStop(0, `rgba(56, 189, 248, ${0.4 + alpha * 0.5})`);
+      npGrad.addColorStop(1, '#1e293b');
+      bioCtx.fillStyle = npGrad;
+      bioCtx.beginPath();
+      bioCtx.arc(shiftX, cy, npRadius * 0.85, 0, Math.PI * 2);
+      bioCtx.fill();
+      bioCtx.strokeStyle = alpha > 0.5 ? '#38bdf8' : '#64748b';
+      bioCtx.lineWidth = 2;
+      bioCtx.stroke();
+
+      // Draw escaping mRNA / drug payload particles streaming through the right pore into cytosol
+      cargoParticles.forEach((cp, idx) => {
+        if (poreIntensity > 0.22 && idx / cargoParticles.length < poreIntensity) {
+          cp.escapeDist = (cp.escapeDist + cp.speed * (0.8 + poreIntensity)) % 135;
+          const spreadAngle = ((idx % 9) - 4) * 0.11;
+          const px = cx + endoRadius - 10 + Math.cos(spreadAngle) * cp.escapeDist;
+          const py = cy + Math.sin(spreadAngle) * cp.escapeDist + Math.sin(simTick * 3 + idx) * 3;
+          bioCtx.fillStyle = '#34d399';
+          bioCtx.beginPath();
+          bioCtx.arc(px, py, 3.2, 0, Math.PI * 2);
+          bioCtx.fill();
+        } else {
+          // Remains inside nanoparticle core
+          const a = cp.angle + simTick * 0.5;
+          const r = cp.rFrac * npRadius * 0.6;
+          bioCtx.fillStyle = ph < 5.05 ? '#f43f5e' : '#38bdf8';
+          bioCtx.beginPath();
+          bioCtx.arc(shiftX + Math.cos(a) * r, cy + Math.sin(a) * r, 2.5, 0, Math.PI * 2);
+          bioCtx.fill();
+        }
+      });
+
+      // Right-hand Telemetry Box for Endosomal Mode
+      bioCtx.fillStyle = 'rgba(15, 23, 42, 0.86)';
+      bioCtx.fillRect(width - 210, 12, 198, 76);
+      bioCtx.strokeStyle = 'rgba(52, 211, 153, 0.35)';
+      bioCtx.strokeRect(width - 210, 12, 198, 76);
+
+      bioCtx.fillStyle = '#e2e8f0';
+      bioCtx.font = '600 11px "JetBrains Mono", monospace';
+      bioCtx.fillText(`Lumen pH: ${ph.toFixed(2)}`, width - 198, 30);
+      bioCtx.fillStyle = '#38bdf8';
+      bioCtx.font = '10px "JetBrains Mono", monospace';
+      bioCtx.fillText(`Lipid Protonation: ${(alpha * 100).toFixed(1)}%`, width - 198, 48);
+      bioCtx.fillStyle = poreIntensity > 0.35 ? '#34d399' : '#fbbf24';
+      bioCtx.fillText(`H_II Pore Flux: ${(poreIntensity * 100).toFixed(0)}%`, width - 198, 65);
+      bioCtx.fillStyle = ph < 5.05 ? '#f43f5e' : '#94a3b8';
+      bioCtx.fillText(ph < 5.05 ? 'WARNING: Lysosomal Hydrolase!' : 'Cytosolic Release Active', width - 198, 80);
+    }
+
+    // ============================================================================
+    // 5. 2D PHASE-SPACE HEATMAP RENDERER
+    // ============================================================================
+    const phaseCanvas = document.getElementById('phasespace-canvas');
+    const phaseCtx = phaseCanvas.getContext('2d');
+
+    function renderPhaseSpaceMap() {
+      const rect = phaseCanvas.parentElement.getBoundingClientRect();
+      if (rect.width === 0) return;
+      phaseCanvas.width = rect.width * window.devicePixelRatio;
+      phaseCanvas.height = rect.height * window.devicePixelRatio;
+      phaseCtx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+
+      const width = rect.width;
+      const height = rect.height;
+      const padLeft = 54;
+      const padRight = 24;
+      const padTop = 22;
+      const padBottom = 42;
+      const plotW = width - padLeft - padRight;
+      const plotH = height - padTop - padBottom;
+
+      phaseCtx.clearRect(0, 0, width, height);
+
+      const cols = 32;
+      const rows = 24;
+      const cellW = plotW / cols;
+      const cellH = plotH / rows;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const xFrac = c / (cols - 1);
+          const yFrac = 1.0 - r / (rows - 1);
+
+          const simParams = { ...state };
+          if (state.phaseAxes === 'pka_peg') {
+            simParams.pka = 5.0 + xFrac * 2.6;
+            simParams.peg = 0.2 + yFrac * 4.8;
+          } else {
+            simParams.diameter = 35 + xFrac * 165;
+            simParams.zeta = -30 + yFrac * 55;
+          }
+
+          const res = evaluateFullModel(simParams);
+          let normVal = 0;
+          if (state.phaseMetric === 'functional') {
+            normVal = Math.min(1.0, res.functionalCytosolicId / 14.0);
+          } else if (state.phaseMetric === 'apoe_ratio') {
+            normVal = Math.min(1.0, res.vroman.apoeToOpsoninRatio / 3.8);
+          } else {
+            normVal = Math.min(1.0, res.mpsClearance / 75.0);
+          }
+
+          phaseCtx.fillStyle = getHeatmapColor(normVal, state.phaseMetric === 'mps_loss');
+          phaseCtx.fillRect(padLeft + c * cellW, padTop + r * cellH, Math.ceil(cellW), Math.ceil(cellH));
+        }
+      }
+
+      // Draw current formulation crosshair marker on Phase-Space
+      let curXFrac = 0.5;
+      let curYFrac = 0.5;
+      if (state.phaseAxes === 'pka_peg') {
+        curXFrac = (state.pka - 5.0) / 2.6;
+        curYFrac = (state.peg - 0.2) / 4.8;
+      } else {
+        curXFrac = (state.diameter - 35) / 165;
+        curYFrac = (state.zeta + 30) / 55;
+      }
+
+      const markerX = padLeft + curXFrac * plotW;
+      const markerY = padTop + (1.0 - curYFrac) * plotH;
+
+      phaseCtx.strokeStyle = '#ffffff';
+      phaseCtx.lineWidth = 2;
+      phaseCtx.beginPath();
+      phaseCtx.arc(markerX, markerY, 7, 0, Math.PI * 2);
+      phaseCtx.stroke();
+
+      phaseCtx.fillStyle = '#38bdf8';
+      phaseCtx.beginPath();
+      phaseCtx.arc(markerX, markerY, 3, 0, Math.PI * 2);
+      phaseCtx.fill();
+
+      // Axis Labels
+      phaseCtx.fillStyle = '#94a3b8';
+      phaseCtx.font = '11px "JetBrains Mono", monospace';
+      const xTitle = state.phaseAxes === 'pka_peg' ? 'Ionizable Lipid Apparent pKa (5.0 → 7.6)' : 'Hydrodynamic Diameter D_h (35 nm → 200 nm)';
+      const yTitle = state.phaseAxes === 'pka_peg' ? 'PEG Density (0.2 → 5.0%)' : 'Surface ζ (-30 → +25 mV)';
+      phaseCtx.fillText(xTitle, padLeft + plotW * 0.22, height - 12);
+
+      phaseCtx.save();
+      phaseCtx.translate(16, padTop + plotH * 0.78);
+      phaseCtx.rotate(-Math.PI / 2);
+      phaseCtx.fillText(yTitle, 0, 0);
+      phaseCtx.restore();
+    }
+
+    function getHeatmapColor(t, invertDanger) {
+      const clamped = Math.max(0, Math.min(1, t));
+      if (invertDanger) {
+        const r = Math.round(20 + clamped * 224);
+        const g = Math.round(35 + (1 - clamped) * 140);
+        const b = Math.round(70);
+        return `rgb(${r},${g},${b})`;
+      }
+      // Viridis/emerald-sky scientific colormap
+      const r = Math.round(12 + Math.pow(clamped, 1.6) * 40);
+      const g = Math.round(24 + clamped * 195);
+      const b = Math.round(52 + Math.sin(clamped * Math.PI) * 150 + clamped * 60);
+      return `rgb(${r},${g},${b})`;
+    }
+
+    // ============================================================================
+    // 6. UI SYNCHRONIZATION & DIAGNOSTIC ENGINE
+    // ============================================================================
+    function updateAllViews() {
+      // Update slider value readouts
+      document.getElementById('label-diameter').textContent = `${state.diameter} nm`;
+      document.getElementById('label-pka').textContent = state.pka.toFixed(2);
+      document.getElementById('label-peg').textContent = `${state.peg.toFixed(1)}%`;
+      const acylMap = { 14: 'C14 (DMG-PEG, Fast Shed)', 16: 'C16 (DPG-PEG, Med Shed)', 18: 'C18 (DSPE-PEG, Stealth)' };
+      document.getElementById('label-acyl').textContent = acylMap[state.acyl] || `C${state.acyl}`;
+      document.getElementById('label-zeta').textContent = `${state.zeta > 0 ? '+' : ''}${state.zeta} mV`;
+      document.getElementById('label-chol').textContent = `${state.chol}%`;
+
+      const result = evaluateFullModel(state);
+      latestModelResult = result;
+
+      // Update KPI Cards
+      document.getElementById('kpi-rf-d-val').textContent = result.vroman.pegPhys.rfOverD.toFixed(2);
+      document.getElementById('kpi-peg-regime-badge').textContent = result.vroman.pegPhys.regime;
+      document.getElementById('kpi-peg-subtext').innerHTML = `Graft spacing D = ${result.vroman.pegPhys.graftingDistance.toFixed(2)} nm (Flory R<sub>F</sub> = 3.43 nm)`;
+
+      const ratio = result.vroman.apoeToOpsoninRatio;
+      document.getElementById('kpi-apoe-opsonin-val').textContent = `${ratio.toFixed(2)}x`;
+      document.getElementById('kpi-corona-badge').textContent = ratio >= 1.5 ? 'ApoE-Enriched' : (result.vroman.finalClu > 32 ? 'Clusterin-Stealth' : 'Opsonin-Prone');
+      document.getElementById('kpi-corona-subtext').textContent = `ApoE: ${result.vroman.finalApoE.toFixed(1)}% | Ops: ${result.vroman.finalOps.toFixed(1)}% | Clu: ${result.vroman.finalClu.toFixed(1)}%`;
+
+      document.getElementById('kpi-escape-val').textContent = `${result.escape.escapeEfficiency.toFixed(1)}%`;
+      document.getElementById('kpi-escape-badge').textContent = (state.pka >= 6.1 && state.pka <= 6.7) ? 'Optimal pKa' : (state.pka < 6.1 ? 'Late Protonation' : 'Pre-Cationic');
+      document.getElementById('kpi-escape-subtext').textContent = `ΔProtonation (pH 7.4→5.6): +${result.escape.deltaProtonation.toFixed(1)}%`;
+
+      document.getElementById('kpi-functional-id').textContent = `${result.functionalCytosolicId.toFixed(2)}%`;
+      document.getElementById('kpi-fate-badge').textContent = result.primaryOrgan;
+      document.getElementById('kpi-fate-subtext').textContent = `MPS Loss: ${result.mpsClearance.toFixed(1)}% | Lysosomal Trap: ${result.lysosomalTrapId.toFixed(1)}%`;
+
+      // Update Mechanistic Diagnostic Text
+      const diagEl = document.getElementById('diagnostic-text');
+      if (state.peg >= 3.0 && state.acyl === 18) {
+        diagEl.textContent = `Strong "PEG Dilemma" detected: High density (${state.peg}%) of non-shedding C18 DSPE-PEG forms a dense brush (R_F/D = ${result.vroman.pegPhys.rfOverD.toFixed(2)}) that blocks opsonins but sterically inhibits endosomal H_II membrane fusion (${result.escape.escapeEfficiency.toFixed(1)}% escape).`;
+      } else if (state.pka > 6.95) {
+        diagEl.textContent = `High apparent pKa (${state.pka.toFixed(2)}) causes premature cationic protonation at blood pH 7.4 (effective ζ = +${result.effectiveZeta.toFixed(1)} mV), triggering heavy C3b/IgG opsonization (${result.vroman.finalOps.toFixed(1)}%) and shifting tropism toward pulmonary capillary endothelium.`;
+      } else if (state.pka < 5.75) {
+        diagEl.textContent = `Low apparent pKa (${state.pka.toFixed(2)}) delays lipid protonation until late lysosomal acidification (pH < 5.2), trapping ${result.lysosomalTrapId.toFixed(1)}% of the injected dose inside hydrolytic lysosomes.`;
+      } else if (state.diameter > 130) {
+        diagEl.textContent = `Hydrodynamic diameter (${state.diameter} nm) exceeds liver sinusoidal fenestrae cutoff (~110 nm), restricting hepatocyte parenchyma access and elevating Kupffer MPS sequestration to ${result.mpsClearance.toFixed(1)}%.`;
+      } else {
+        diagEl.textContent = `Synergistic formulation regime: C${state.acyl} PEG desorption exposes neutral cholesterol domains for ApoE recruitment (${result.vroman.finalApoE.toFixed(1)}% hard corona), while pKa ${state.pka.toFixed(2)} drives rapid H_II endosomal escape (${result.escape.escapeEfficiency.toFixed(1)}%).`;
+      }
+
+      // Update Stacked Cascade Bar
+      document.getElementById('bar-mps').style.width = `${result.mpsClearance.toFixed(1)}%`;
+      document.getElementById('bar-renal').style.width = `${result.systemicOffTargetId.toFixed(1)}%`;
+      document.getElementById('bar-lysosome').style.width = `${result.lysosomalTrapId.toFixed(1)}%`;
+      document.getElementById('bar-cytosol').style.width = `${Math.max(2, result.functionalCytosolicId).toFixed(1)}%`;
+
+      document.getElementById('val-bar-mps').textContent = `${result.mpsClearance.toFixed(1)}%`;
+      document.getElementById('val-bar-renal').textContent = `${result.systemicOffTargetId.toFixed(1)}%`;
+      document.getElementById('val-bar-lysosome').textContent = `${result.lysosomalTrapId.toFixed(1)}%`;
+      document.getElementById('val-bar-cytosol').textContent = `${result.functionalCytosolicId.toFixed(2)}%`;
+      document.getElementById('cascade-therapeutic-index').textContent = `Target-to-MPS Ratio: ${(result.functionalCytosolicId / Math.max(1, result.mpsClearance)).toFixed(2)}`;
+
+      // Update Chart.js plots
+      if (chartVroman && chartEscape) {
+        chartVroman.data.labels = result.vroman.timeMin;
+        chartVroman.data.datasets[0].data = result.vroman.seriesApoE;
+        chartVroman.data.datasets[1].data = result.vroman.seriesOps;
+        chartVroman.data.datasets[2].data = result.vroman.seriesClu;
+        chartVroman.data.datasets[3].data = result.vroman.seriesHSA;
+        chartVroman.update('none');
+
+        chartEscape.data.labels = result.escape.phAxis;
+        chartEscape.data.datasets[0].data = result.escape.escapeFluxCurve;
+        chartEscape.data.datasets[1].data = result.escape.protonationCurve;
+        chartEscape.update('none');
+      }
+
+      // Update Phase-Space readouts
+      document.getElementById('ph-val-x').textContent = state.phaseAxes === 'pka_peg' ? state.pka.toFixed(2) : `${state.diameter} nm`;
+      document.getElementById('ph-val-y').textContent = state.phaseAxes === 'pka_peg' ? `${state.peg.toFixed(1)}%` : `${state.zeta} mV`;
+      document.getElementById('ph-val-func').textContent = `${result.functionalCytosolicId.toFixed(2)}%`;
+      document.getElementById('ph-val-mps').textContent = `${result.mpsClearance.toFixed(1)}%`;
+
+      if (state.activeTab === 'phasespace') {
+        renderPhaseSpaceMap();
+      }
+    }
+
+    // ============================================================================
+    // 7. COMPARISON BENCH & DATA EXPORT
+    // ============================================================================
+    function seedDefaultBench() {
+      state.pinnedFormulations = [];
+      ['mc3_lnp', 'stealth_liposome'].forEach(key => {
+        const p = PRESETS[key];
+        const res = evaluateFullModel({ ...state, ...p });
+        state.pinnedFormulations.push({
+          id: key + '_' + Math.random().toString(36).slice(2, 6),
+          name: p.name,
+          diameter: p.diameter,
+          pka: p.pka,
+          peg: p.peg,
+          acyl: p.acyl,
+          zeta: p.zeta,
+          chol: p.chol,
+          rfOverD: res.vroman.pegPhys.rfOverD,
+          apoeRatio: res.vroman.apoeToOpsoninRatio,
+          escapePct: res.escape.escapeEfficiency,
+          cytosolicId: res.functionalCytosolicId
+        });
+      });
+      renderComparisonTable();
+    }
+
+    function renderComparisonTable() {
+      const tbody = document.getElementById('comparison-table-body');
+      document.getElementById('pinned-count-badge').textContent = state.pinnedFormulations.length;
+      tbody.innerHTML = '';
+
+      state.pinnedFormulations.forEach((item) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-900/60 transition';
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-sans font-medium text-white">${item.name}</td>
+          <td class="py-2.5 px-3 text-right text-slate-300">${item.diameter}</td>
+          <td class="py-2.5 px-3 text-right text-sky-300">${item.pka.toFixed(2)}</td>
+          <td class="py-2.5 px-3 text-right text-slate-300">${item.peg.toFixed(1)}%</td>
+          <td class="py-2.5 px-3 text-right text-slate-400">C${item.acyl}</td>
+          <td class="py-2.5 px-3 text-right text-slate-300">${item.zeta > 0 ? '+' : ''}${item.zeta}</td>
+          <td class="py-2.5 px-3 text-right text-slate-300">${item.rfOverD.toFixed(2)}</td>
+          <td class="py-2.5 px-3 text-right text-amber-300">${item.apoeRatio.toFixed(2)}x</td>
+          <td class="py-2.5 px-3 text-right text-emerald-300">${item.escapePct.toFixed(1)}%</td>
+          <td class="py-2.5 px-3 text-right font-bold text-emerald-400">${item.cytosolicId.toFixed(2)}%</td>
+          <td class="py-2.5 px-3 text-center space-x-2">
+            <button data-load-id="${item.id}" class="bench-load-btn text-sky-400 hover:underline">Load</button>
+            <button data-del-id="${item.id}" class="bench-del-btn text-rose-400 hover:underline">Remove</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      tbody.querySelectorAll('.bench-load-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const found = state.pinnedFormulations.find(f => f.id === btn.dataset.loadId);
+          if (found) {
+            applyParamsToSliders(found);
+            switchTab('workbench');
+            showToast(`Loaded "${found.name}" into Workbench.`);
+          }
+        });
+      });
+
+      tbody.querySelectorAll('.bench-del-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.pinnedFormulations = state.pinnedFormulations.filter(f => f.id !== btn.dataset.delId);
+          renderComparisonTable();
+          showToast('Removed candidate from bench.');
+        });
+      });
+    }
+
+    function showToast(msg) {
+      const banner = document.getElementById('toast-banner');
+      document.getElementById('toast-message').textContent = msg;
+      banner.classList.remove('hidden');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 2800);
+    }
+
+    function copyTextSafe(text, successMsg) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast(successMsg)).catch(() => fallbackCopy(text, successMsg));
+      } else {
+        fallbackCopy(text, successMsg);
+      }
+    }
+
+    function fallbackCopy(text, successMsg) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg);
+      } catch (e) {
+        showToast('Copy complete.');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function applyParamsToSliders(p) {
+      state.diameter = p.diameter;
+      state.pka = p.pka;
+      state.peg = p.peg;
+      state.acyl = p.acyl;
+      state.zeta = p.zeta;
+      state.chol = p.chol;
+
+      document.getElementById('slider-diameter').value = state.diameter;
+      document.getElementById('slider-pka').value = state.pka;
+      document.getElementById('slider-peg').value = state.peg;
+      document.getElementById('slider-acyl').value = state.acyl;
+      document.getElementById('slider-zeta').value = state.zeta;
+      document.getElementById('slider-chol').value = state.chol;
+      updateAllViews();
+    }
+
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      ['workbench', 'phasespace', 'compare', 'guide'].forEach(id => {
+        const sec = document.getElementById(`view-${id}`);
+        const btn = document.getElementById(`tab-btn-${id}`);
+        if (id === tabId) {
+          sec.classList.remove('hidden');
+          btn.className = 'nav-tab-btn px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all bg-sky-500/20 text-sky-300 border border-sky-500/30 whitespace-nowrap flex items-center gap-1.5';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'nav-tab-btn px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 border border-transparent whitespace-nowrap flex items-center gap-1.5';
+        }
+      });
+
+      if (tabId === 'phasespace') {
+        setTimeout(renderPhaseSpaceMap, 20);
+      }
+      if (tabId === 'workbench') {
+        setTimeout(resizeBioCanvas, 20);
+      }
+    }
+
+    // ============================================================================
+    // 8. EVENT LISTENERS & INITIALIZATION
+    // ============================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      initCharts();
+      initParticleSystem();
+      resizeBioCanvas();
+      seedDefaultBench();
+      updateAllViews();
+      animFrameId = requestAnimationFrame(renderBiophysicsCanvas);
+
+      window.addEventListener('resize', () => {
+        resizeBioCanvas();
+        if (state.activeTab === 'phasespace') renderPhaseSpaceMap();
+      });
+
+      // Tab buttons
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      // Sliders
+      document.getElementById('slider-diameter').addEventListener('input', e => {
+        state.diameter = parseFloat(e.target.value);
+        updateAllViews();
+      });
+      document.getElementById('slider-pka').addEventListener('input', e => {
+        state.pka = parseFloat(e.target.value);
+        updateAllViews();
+      });
+      document.getElementById('slider-peg').addEventListener('input', e => {
+        state.peg = parseFloat(e.target.value);
+        updateAllViews();
+      });
+      document.getElementById('slider-acyl').addEventListener('input', e => {
+        state.acyl = parseInt(e.target.value, 10);
+        updateAllViews();
+      });
+      document.getElementById('slider-zeta').addEventListener('input', e => {
+        state.zeta = parseFloat(e.target.value);
+        updateAllViews();
+      });
+      document.getElementById('slider-chol').addEventListener('input', e => {
+        state.chol = parseFloat(e.target.value);
+        updateAllViews();
+      });
+
+      // Reset Sliders
+      document.getElementById('reset-sliders-btn').addEventListener('click', () => {
+        applyParamsToSliders(PRESETS.mc3_lnp);
+        showToast('Reset to benchmark Onpattro-like MC3 LNP.');
+      });
+
+      // Presets
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const p = PRESETS[btn.dataset.preset];
+          if (p) {
+            applyParamsToSliders(p);
+            showToast(`Loaded preset: ${p.name}`);
+          }
+        });
+      });
+
+      // Milieu Selector
+      document.getElementById('milieu-select').addEventListener('change', e => {
+        state.milieu = e.target.value;
+        updateAllViews();
+      });
+
+      // Simulation Canvas Mode Toggle
+      const btnCorona = document.getElementById('sim-mode-corona');
+      const btnEndo = document.getElementById('sim-mode-endosome');
+      const scrubberWrap = document.getElementById('endosome-ph-scrubber-wrap');
+      const subtitle = document.getElementById('canvas-subtitle');
+
+      btnCorona.addEventListener('click', () => {
+        state.simMode = 'corona';
+        btnCorona.className = 'px-2.5 py-1 rounded text-xs font-medium bg-sky-500/20 text-sky-300 border border-sky-500/30 transition';
+        btnEndo.className = 'px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-slate-200 border border-transparent transition';
+        scrubberWrap.classList.add('hidden');
+        subtitle.textContent = 'Stochastic Vroman protein exchange & PEG brush dynamics in plasma';
+      });
+
+      btnEndo.addEventListener('click', () => {
+        state.simMode = 'endosome';
+        btnEndo.className = 'px-2.5 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition';
+        btnCorona.className = 'px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-slate-200 border border-transparent transition';
+        scrubberWrap.classList.remove('hidden');
+        subtitle.textContent = 'Acidification-driven ionizable lipid protonation & H_II hexagonal pore escape';
+      });
+
+      // Endosome pH Scrubber
+      document.getElementById('slider-endosome-ph').addEventListener('input', e => {
+        state.endosomePh = parseFloat(e.target.value);
+        let stage = 'Early Endosome';
+        if (state.endosomePh < 5.1) stage = 'Hydrolytic Lysosome';
+        else if (state.endosomePh < 5.65) stage = 'Late Endosome (Maturing)';
+        else if (state.endosomePh < 6.35) stage = 'Early-to-Late Endosome (Golden Window)';
+        else stage = 'Nascent Endocytic Vesicle';
+        document.getElementById('endosome-stage-label').textContent = `${stage} (pH ${state.endosomePh.toFixed(2)})`;
+      });
+
+      // Pin Formulation Button
+      document.getElementById('pin-formulation-btn').addEventListener('click', () => {
+        const res = evaluateFullModel(state);
+        const customName = `Candidate #${state.pinnedFormulations.length + 1} (pKa ${state.pka.toFixed(2)}, ${state.peg.toFixed(1)}% C${state.acyl})`;
+        state.pinnedFormulations.push({
+          id: 'cand_' + Date.now(),
+          name: customName,
+          diameter: state.diameter,
+          pka: state.pka,
+          peg: state.peg,
+          acyl: state.acyl,
+          zeta: state.zeta,
+          chol: state.chol,
+          rfOverD: res.vroman.pegPhys.rfOverD,
+          apoeRatio: res.vroman.apoeToOpsoninRatio,
+          escapePct: res.escape.escapeEfficiency,
+          cytosolicId: res.functionalCytosolicId
+        });
+        renderComparisonTable();
+        showToast(`Pinned "${customName}" to Comparison Bench!`);
+      });
+
+      // Phase-Space controls & interactive click
+      document.getElementById('phase-axes-select').addEventListener('change', e => {
+        state.phaseAxes = e.target.value;
+        updateAllViews();
+      });
+      document.getElementById('phase-metric-select').addEventListener('change', e => {
+        state.phaseMetric = e.target.value;
+        renderPhaseSpaceMap();
+      });
+
+      phaseCanvas.addEventListener('click', e => {
+        const rect = phaseCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const padLeft = 54, padRight = 24, padTop = 22, padBottom = 42;
+        const plotW = rect.width - padLeft - padRight;
+        const plotH = rect.height - padTop - padBottom;
+
+        const xFrac = Math.max(0, Math.min(1, (x - padLeft) / plotW));
+        const yFrac = Math.max(0, Math.min(1, 1.0 - (y - padTop) / plotH));
+
+        if (state.phaseAxes === 'pka_peg') {
+          state.pka = +(5.0 + xFrac * 2.6).toFixed(2);
+          state.peg = +(0.2 + yFrac * 4.8).toFixed(1);
+          document.getElementById('slider-pka').value = state.pka;
+          document.getElementById('slider-peg').value = state.peg;
+        } else {
+          state.diameter = Math.round(35 + xFrac * 165);
+          state.zeta = Math.round(-30 + yFrac * 55);
+          document.getElementById('slider-diameter').value = state.diameter;
+          document.getElementById('slider-zeta').value = state.zeta;
+        }
+        updateAllViews();
+      });
+
+      document.getElementById('phase-jump-workbench-btn').addEventListener('click', () => {
+        switchTab('workbench');
+      });
+
+      // Bench Export & Copy Actions
+      document.getElementById('copy-markdown-table-btn').addEventListener('click', () => {
+        const header = `| Candidate | D_h (nm) | Lipid pKa | PEG (mol%) | Anchor | Zeta (mV) | R_F/D | ApoE/Ops | Escape (%) | Cytosolic (%ID) |\n|---|---:|---:|---:|---|---:|---:|---:|---:|---:|`;
+        const rows = state.pinnedFormulations.map(f =>
+          `| ${f.name} | ${f.diameter} | ${f.pka.toFixed(2)} | ${f.peg.toFixed(1)}% | C${f.acyl} | ${f.zeta} | ${f.rfOverD.toFixed(2)} | ${f.apoeRatio.toFixed(2)}x | ${f.escapePct.toFixed(1)}% | **${f.cytosolicId.toFixed(2)}%** |`
+        ).join('\n');
+        copyTextSafe(`${header}\n${rows}`, 'Copied Markdown comparison table to clipboard!');
+      });
+
+      document.getElementById('export-csv-btn').addEventListener('click', () => {
+        const csvHeader = 'Name,Diameter_nm,Lipid_pKa,PEG_mol_pct,Acyl_Anchor,Zeta_mV,RF_over_D,ApoE_Opsonin_Ratio,Endosomal_Escape_pct,Cytosolic_Bioavailability_pctID\n';
+        const csvRows = state.pinnedFormulations.map(f =>
+          `"${f.name}",${f.diameter},${f.pka.toFixed(2)},${f.peg.toFixed(1)},C${f.acyl},${f.zeta},${f.rfOverD.toFixed(2)},${f.apoeRatio.toFixed(2)},${f.escapePct.toFixed(1)},${f.cytosolicId.toFixed(2)}`
+        ).join('\n');
+        const blob = new Blob([csvHeader + csvRows], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'corona_flux_formulations.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('Downloaded corona_flux_formulations.csv');
+      });
+
+      document.getElementById('clear-bench-btn').addEventListener('click', () => {
+        seedDefaultBench();
+        showToast('Reset comparison bench to reference formulations.');
+      });
+
+      // Copy GitHub README
+      document.getElementById('copy-readme-btn').addEventListener('click', () => {
+        const readmeText = `# CORONA-FLUX: Systems Nanopharmacology & Endosomal Escape Workbench
+
+An interactive biophysics and systems pharmacology simulator bridging **synthetic nanoparticle formulation parameters** (De Gennes PEG brush mechanics, acyl-anchor desorption rates, ionizable lipid apparent $pK_a$) with **emergent biological identity** (competitive Vroman protein corona ODE kinetics and pH-triggered $H_{II}$ endosomal membrane escape).
+
+## Key Biophysical Models Implemented
+1. **De Gennes Polymer Brush Scaling**: Computes grafting spacing $D = \\sqrt{A_{\\text{lipid}} / f_{\\text{PEG}}}$ and Flory ratio $R_F / D$ to resolve mushroom-to-brush steric shielding of plasma proteins.
+2. **Competitive Vroman Effect ODE Integrator (RK4)**: Solves coupled differential equations for transient soft-corona Albumin displacement by high-affinity ApoE, C3b/IgG opsonins, and Clusterin over 60 minutes.
+3. **Endolysosomal Maturation & $H_{II}$ Escape Window**: Couples Henderson-Hasselbalch protonation $\\alpha(\\text{pH})$ across $\\text{pH } 7.4 \\to 4.7$ with residual PEG steric barriers to predict cytosolic payload release vs. lysosomal trapping.
+
+## Running Locally or on GitHub Pages
+Open \`index.html\` directly in any modern browser—zero build step or backend required.`;
+        copyTextSafe(readmeText, 'Copied GitHub README.md template to clipboard!');
+      });
+    });
+  </script>
+</body>
+</html>
